@@ -1,3 +1,5 @@
+// FUNCTIONS AND GENERATED TYPES
+
 // --------------------
 
 // 1. Explicitly tell TS the parameter's types
