@@ -294,11 +294,13 @@
 // 2. Interfaces do not emit javascript code (No `interface` present in runtime code)
 // 3. Interface has only abstract methods (following from point 3). Nothing is concrete! 
 // i.e No default implementations that can be used directly or can be overridden
+// 4. Interfaces cannot have visibility modifiers (No private, protected, public)
 // ---
 // 1. Abstract classes can only model a class
 // 2. Abstract classes can contain constructors and provide default implementations
 // 3. Abstract classes add runtime code (An abstract class in present in generated JS)
 // 4. Abstract classes can have a mixture of concrete methods and abstract methods
+// 5. Abstract classes can have visibility modifiers (private, protected, public)
 // ---
 // Q: When do we use abstract classes? 
 // A: When we have an implementation that is shared among multiple classes
