@@ -1,4 +1,6 @@
-# Typescript Short Notes
+# Understanding Typescript
+
+[Course link](https://www.udemy.com/course/understanding-typescript)
 
 * Javascript: Uses **dynamic types** that are resolved at runtime (production)
 * Typescript: Uses **static types** that are resolved at compile time (development)
