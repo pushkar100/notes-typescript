@@ -1,38 +1,37 @@
-# Understanding Typescript
+# TypeScript
 
-[Course link](https://www.udemy.com/course/understanding-typescript)
+Courses:
+* [Udemy](https://www.udemy.com/course/understanding-typescript)
 
-* Javascript: Uses **dynamic types** that are resolved at runtime (production)
-* Typescript: Uses **static types** that are resolved at compile time (development)
-
-Dynamic types can be checked at runtime (Ex: by using `typeof` operator) but with static types, the check happens automatically when you compile code
-
-TS allows you to 1. *detect errors early* & 2. *avoid certain runtime errors*.
-
-- [Typescript Short Notes](#typescript-short-notes)
-  * [Core types](#core-types)
-    + [A more specific object](#a-more-specific-object)
-    + [Defining Arrays](#defining-arrays)
-    + [Using Tuples](#using-tuples)
-    + [What are Enums?](#what-are-enums-)
-  * [Type inference](#type-inference)
-  * [Union of types](#union-of-types)
-  * [Literal Types](#literal-types)
-  * [Custom types (`type` aliases)](#custom-types---type--aliases-)
-  * [Functions: parameter & return types](#functions--parameter---return-types)
-  * [Function types](#function-types)
-  * [Functions and callbacks](#functions-and-callbacks)
-  * [`unknown` type](#-unknown--type)
-  * [`never` type](#-never--type)
-  * [TS compilation and config](#ts-compilation-and-config)
+- [TypeScript](#typescript)
+  * [Introduction](#introduction)
+    + [Advantages of using TypeScript](#advantages-of-using-typescript)
+  * [Data types](#data-types)
+    + [Type annotations](#type-annotations)
+    + [Type inference](#type-inference)
+      - [When is it good to explicitly set the type?](#when-is-it-good-to-explicitly-set-the-type-)
+    + [JS pattern that is a TS anti-pattern](#js-pattern-that-is-a-ts-anti-pattern)
+    + [The undefined type](#the-undefined-type)
+    + [Object types](#object-types)
+    + [Array types](#array-types)
+    + [Tuple data type](#tuple-data-type)
+    + [Enums](#enums)
+    + [Any type](#any-type)
+    + [Union types](#union-types)
+    + [Literal types](#literal-types)
+    + [Unknown type](#unknown-type)
+    + [Type aliases](#type-aliases)
+  * [Functions](#functions)
+    + [Void versus undefined return type](#void-versus-undefined-return-type)
+    + [Functions as types](#functions-as-types)
+    + [Never type](#never-type)
+  * [TypeScript configuration](#typescript-configuration)
     + [Watch mode](#watch-mode)
-    + [Create a TS project with a config](#create-a-ts-project-with-a-config)
+    + [Creating a config file](#creating-a-config-file)
+    + [Specifying files](#specifying-files)
       - [Excluding files](#excluding-files)
       - [Including files](#including-files)
-      - [Compilation target](#compilation-target)
-      - [Core libraries](#core-libraries)
-      - [More compiler options](#more-compiler-options)
-        * [`strictNullChecks`](#-strictnullchecks-)
+    + [More compiler options](#more-compiler-options)
   * [Classes & interfaces](#classes---interfaces)
     + [Creating classes](#creating-classes)
     + [Defining methods](#defining-methods)
@@ -95,422 +94,779 @@ TS allows you to 1. *detect errors early* & 2. *avoid certain runtime errors*.
     + [`ts-node` package](#-ts-node--package)
     + [TS for production Node project](#ts-for-production-node-project)
 
-## Core types
+## Introduction
 
-1. `number`
-2. `string`
-3. `boolean`
-4. `object` (Very generic, not too useful: only cares if value is an object but nothing specific about it)
-5. Arrays (`<type>[]`)
-6. Tuples (`[<type>, <type>, ...]`) *(A fixed length & a fixed type array)*
-7. `any` *(The most flexible data type. A very loose data type: only use when it is a last resort. Avoid it when possible since it gives you the same experience you get with regular JavaScript)*
-8. `enum`
-9. `void` *(Usually used as a function return type to indicate that it does not return anything; side effects)*
+- Superset of JS
+- Allows use of strict types: (Benefit = less errors)
+- Modern ES6+ features supported (Arrow functions, let, const) (Uses a babel-like compiler internally)
+- Extra features on top of ES6+ (Interfaces, Generics, Tuples, etc)
 
-**The core primitive types in TypeScript are all lowercase!** (Ex: Not `String` but `string` unlike JS)
+TS has utilities to build JS for the web (since only JS runs) that supports everything above. 
+- TS does not execute in a browser
+- TS comes with a powerful compiler that compiles the code into JS which can then run in the browser
+- Features compiled to JS are "workarounds" and any possible errors are thrown by the compiler
 
-Typescript also supports some regular Javascript types (Classes) like **`Function`** and **`Date`**!
+Example of a need for TS:
+* Consider a function for adding two numbers
+* If we pass it two strings instead, it performs string concatenation instead of addition
+* This is a logical error as the original function never meant to concatenate strings
+* With types, we can catch such errors at build or compile time using a tool such as TS i.e write better code
 
-### A more specific object
+***Installation***: `npm i -g typescript`. This command installs the TS compiler (globally) which provides us with a `tsc` command.
 
-The `object` type only cares if it is an object and not the structure of it
+***Compilation***: `tsc sandbox.ts` where sandbox.ts is the typescript file to be compiled. The corresponding JS file `sandbox.js` will be output (***writes to it, creates one if it does not exist***)
 
-```typescript
-const person: object = {
-  name: 'Pushkar',
-  age: 27
+***Compile with a watcher***: `tsc sandbox.ts -w` where `-w` watches for any changes to the files and automatically re-builds the JS for it
+
+Example:
+```ts
+// using-ts.ts
+const button = document.querySelector("button")! as HTMLButtonElement;
+const input1 = document.getElementById("num1")! as HTMLInputElement;
+const input2 = document.getElementById("num2")! as HTMLInputElement;
+
+function add(num1: number, num2: number) {
+  return num1 + num2;
 }
-// It does not care for the structure
+
+button.addEventListener("click", function() {
+  console.log(add(+input1.value, +input2.value));
+});
+```
+The compiled output in JS will be (`tsc using-ts.ts`):
+```js
+const button = document.querySelector("button")! as HTMLButtonElement;
+const input1 = document.getElementById("num1")! as HTMLInputElement;
+const input2 = document.getElementById("num2")! as HTMLInputElement;
+
+function add(num1: number, num2: number) {
+  return num1 + num2;
+}
+
+button.addEventListener("click", function() {
+  console.log(add(+input1.value, +input2.value));
+});
 ```
 
-We can be more specific. Define the structure and also the structure of *nested objects*
+If in case there is an error, TS will complain in the terminal (& editor if the plugin is enabled) like so.
+```
+(base) ➜  adjusted-project tsc using-ts.ts
+using-ts.ts:10:19 - error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
 
-```typescript
-const person: {
-  name: string; // Note the semicolon(;). Use it to distinguish between objects & types!
-  age: number;
-  details: {
-    info: string
-  }
-} = {
-  name: 'Pushkar',
-  age: 27,
-  details: {
-    info: 'A good boy'
+10   console.log(add(input1.value, +input2.value));
+                     ~~~~~~~~~~~~
+
+Found 1 error in using-ts.ts:10
+```
+However, *TS will always output the JS, even in cases where there is an error!*
+
+*TypeScript forces us to write cleaner, better, and less error-prone code.*
+
+### Advantages of using TypeScript
+
+TS adds:
+- Types: You need to be explicit about what you want and avoid unnecessary behaviour
+- Next-gen JS features: Compiles it down to JS that works on older browsers just like what a tool like Babel can do
+- Non-JS features like Interfaces or Generics: These cannot be compiled into JS but still help you write better code (will be checked and removed during compilation)
+- Meta-programming features like Decorators
+- Rich config options (`tsconfig.json`)
+- Modern tooling that helps even in non-TS projects
+
+## Data types
+
+***The following are data types in JS that are also types in TS!***
+1. Number (`number`). Ex `0`, `1.1`, `1.234`
+2. String (`string`). Ex: `"Hi"`, `'hello there'`
+3. Boolean (`boolean`). Ex: `true`, `false`
+4. Object (`object` or `{}`). Ex: `{}`. `{ a: 10, foo: 'Hey' }`
+5. Arrays (`array` or `[]`): Ex: `[1, 2, 3]`, `["Jim", "Tom"]`
+6. `undefined`: TS uses this type a bit differently than JS does
+
+In JavaScript, we use the `typeof` operator to read the type of a value or an expression. With TS, however, we use type annotations to read the same.
+
+Type annotations v/s `typeof` operator:
+* Annotations in TS are checked at compile time
+* `typeof` checks the type of the value at runtime i.e when the JS code is executing in an environment, like the browser.
+
+***Data types in TS that are not valid in JS!***
+1. Tuples (`[type1, type2, ...]`): These are fixed-length arrays!
+2. Enums (`{ VAL1, VAL2, ...]`): Automatically enumerated global constant identifiers!
+3. Any (`any`): Least specific type of assignment. Can assign any type of value to such a type.
+4. Union types (`|`): Combines two types i.e allows either one of the combined types
+5. Literal type: The type is limited to a single value. Ex: type is the number `5` instead of the set of all numbers
+6. Unknown (`unknown`): Similar to any but more restrictive. Needs type checking before it can be used i.e assigned to something else
+7. Void (`void`): A special return type of a function when it returns nothing (Implicit return)
+8. Never (`never`): Another special return type of a function
+
+### Type annotations
+
+Expected data types for assignments, i.e variables and parameters, can be denoted using the `: <type>` suffix as shown below:
+```ts
+// Examples:
+const x: number = 10;
+function add(n1: number, n2: number) { /*...*/ }
+function print(word: string) { /*...*/ }
+function logIfNecessary(shouldLog: boolean) { /*...*/ }
+```
+
+All the special syntax introduced by TS (such as these type annotations) are removed in the generated JS.
+
+### Type inference
+
+We *do not* have to be explicit about the type for every declaration!
+
+TS is smart enough to ***infer*** the types in many cases based on the value being assigned to a variable.
+
+Ex:
+```ts
+const num: number = 5;
+// is equivalent to:
+const num = 5;
+```
+If you hover over it in VSCode, the type will appear.
+
+*Utilise inference whenever possible.*  It is a good practice which:
+* Allows TS to calculate the type 
+* Reduces redundancy in code
+
+#### When is it good to explicitly set the type?
+
+We should set the type when the *declaration* of a variable & its *assignment* happen separately. An example is that of a `let` variable that is assigned later.
+
+```ts
+// Use inference:
+const a = 5;
+
+// Define a type explicitly (skip inference):
+let b: string;
+// ... later in the code:
+b = document.getElementByClass('.btn').innerHTML;
+```
+
+Without an assignment or a type declaration, TS will assign an `any` type to the variable;
+
+```ts
+let a; // "any" type
+```
+
+### JS pattern that is a TS anti-pattern
+
+Type checking using `typeof` operator i.e adding a guard clause or performing duck-typing is not required in TS because of the use of type annotations that the compiler checks at build time.
+
+```ts
+function add(n1: number, n2: number) {
+  // The following runtime check is unnecessary in TS 
+  // because we already expect numbers (checked at compile time):
+  if (typeof n1 === 'number' && typeof n2 === 'number') {
+    // function logic:
+    return n1 + n2;
   }
 }
 ```
 
-However, in most cases, we can allow TS to *infer the structure* based on initialisation:
+### The undefined type
 
-```typescript
+This type `undefined` is special in JS. It denotes that a value has been declared but not assigned.
+
+```js
+let x; // JS value of `x` is undefined
+```
+
+In JS, returning nothing from a function returns `undefined` as well!
+```js
+const foo = () => {}
+foo(); // Returns `undefined` in JS
+```
+
+In TS, however, `undefined` can be used as a type, BUT:
+* A declared but unassigned value is type `any`
+* Be explicit if you want an `undefined` type.
+```ts
+let x; // `any` type
+let y: undefined; // `undefined` type
+```
+* When a function returns nothing, its type is **`void`** (Not `undefined`). However, the generated JS that runs will return `undefined`. This is a subtle but important difference between JS & TS. 
+
+### Object types
+
+* Object types are also inferred during declaration with assignment
+```ts
+const user = {
+  name: 'Jim',
+  age: 25
+}
+```
+The inferred type:
+```ts
+const user: {
+    name: string;
+    age: number;
+}
+```
+Note that the key-values are `property: type` in the object type and we semicolons `;` delimit them.
+
+* The `object` type is the *least specific* object type in TS. Generally, more specific types are needed to validate the props
+```ts
+const user: {} = { // Alternate syntax: `const user: object = {`
+  name: 'Jim',
+  age: 25
+}
+
+console.log(user.name) // ERROR! since the type `object` or `{}` has no properties
+```
+
+* Nested objects can also have types defined.
+```ts
+const user = {
+  name: 'Jim',
+  age: 25,
+  friends: ['Tim', 'Pim', 'Dim'],
+  address: {
+    house: '2 robert place',
+    street: 'highway 14',
+    city: 'London'
+  }
+}
+
+// Type for the object above:
+const user: {
+    name: string;
+    age: number;
+    friends: string[];
+    address: {
+        house: string;
+        street: string;
+        city: string;
+    };
+}
+```
+
+### Array types
+
+* Array types are defined using the `<elementType>[]` syntax
+```ts
+let names: string[]; // Defines a type of an array of string type elements
+
+// Alternate syntax:
+const names: Array<string>;
+```
+
+* Array types can also be inferred!
+```ts
+const friends = ['Tim', 'Pim', 'Dim'];
+
+// TS type for the above object:
+const friends: string[]
+```
+
+* TS is smart enough to infer the type of the array items as well! This is great for providing auto-completion through intellisense.
+```ts
+const friends = ['Tim', 'Pim', 'Dim'];
+for(const friend of friends) {
+  console.log('Hello, ' + friend.toUpperCase()); // `.toUpperCase()` - No error, auto suggested by TS enabled editor
+}
+```
+
+* Mixed element types are recognized and inferred by TS. The `|` symbol is used as the union of types i.e mixed element types can be thought of as a union
+```ts
+const arr = [1, 'Ram']; // Inferred as (number | string)[]
+```
+
+### Tuple data type
+
+Tuples are fixed-length arrays!
+
+* Tuples are identified by a special syntax
+```ts
+// Ex:
+[number, string]
+```
+
+* Usually tuples have to be identified ***explicitly*** (In order to avoid being confused with an array)
+```ts
+const ageAndName = [28, 'Rashmi'];
+// Inferred as `(string | number)[]` which is a mixed-array and not a tuple
+
+// Be explicit if you need a tuple:
+const ageAndName: [number, string] = [28, 'Rashmi'];
+```
+
+* Element type mismatch or tuple length mismatch errors are recognized!
+```ts
+const foo: [number, string] = [28, true]; // ERROR!
+const bar: [number, string] = [28, 'Rashmi', 'additionalElement']; // ERROR!
+```
+
+* ***TS drawback***: It cannot handle errors with `.push()` (When you push an element, it gets added to the tuple but this operation should ideally not be possible since a tuple is a fixed-length array!)
+```ts
+const ageAndName: [number, string] = [28, 'Rashmi'];
+ageAndName.push('something'); // ALLOWED but should be a type error :/
+```
+
+### Enums
+
+Enums are data types that are useful for generating human readable identifiers that internally map to other values.
+
+For example, if you want to provide admin privileges via code and the levels are 1-4 then remembering what 1 as a level is or what 4 is difficult.
+
+One approach can be to set string values like so:
+```ts
+// ...
+{
+	role: 'SUPER_USER_ROLE';
+}
+// ...
+if (role === 'SUPER_USER_ROLE') { ... }
+```
+However, strings can be mistyped and difficult to remember! On top of this, we might want the role to be a number internally (Like `1`)
+
+TS makes it easy to provide such identifiers with their values using `enum`
+
+**Syntax:**
+```ts
+enum EnumName { ENUM_VALUE_1, ENUM_VALUE_2, ... }
+// convention: PascalCase
+```
+
+**Usage:**
+The enum can be referenced like you would reference an object and its key. Hence, it can be used in your if conditionals, assignments and so on! (Internally, the generated JS for an enum is basically an object!)
+```ts
+EnumName.ENUM_VALUE_1 // Referencing an enum
+```
+
+Example:
+```ts
+enum Role { ADMIN, USER, READ_ONLY };
+
 const person = {
   name: 'Pushkar',
-  age: 27,
-  details: {
-    info: 'A good boy'
+  role: Role.ADMIN // references an enum
+}
+
+if (person.role === Role.USER) { // enum values can be used in conditionals too!
+  console.log('You are a user');
+}
+```
+The generated JS file looks like:
+```js
+var Role;
+(function (Role) {
+    Role[Role["ADMIN"] = 0] = "ADMIN";
+    Role[Role["USER"] = 1] = "USER";
+    Role[Role["READ_ONLY"] = 2] = "READ_ONLY";
+})(Role || (Role = {}));
+;
+var person = {
+    name: 'Pushkar',
+    role: Role.ADMIN // references an enum
+};
+if (person.role === Role.USER) { // enum values can be used in conditionals too!
+    console.log('You are a user');
+}
+```
+
+**Note:**
+* The default internal values for each enum starts with a `0` and increments by 1 for each new enum (Left to right)
+* You can *explicitly set the internal values* for an enum using the `=` operator (Some values are not allowed like objects and boolean)
+```ts
+enum Role { ADMIN = 5, USER = "Hello", READ_ONLY = 'blah' };
+```
+Generated JS:
+```js
+var Role;
+(function (Role) {
+    Role[Role["ADMIN"] = 5] = "ADMIN";
+    Role["USER"] = "Hello";
+    Role["READ_ONLY"] = "blah";
+})(Role || (Role = {}));
+;
+```
+
+As a user, you are not expected to remember the internal values i.e the mapping between the identifier and the value.
+
+### Any type
+
+It is the least specific type or ***most flexible*** in TS. When you declare a variable but do no assign it a value immediately, or if you don't explicitly declare the type then `any` is what gets assigned.
+
+```ts
+let x; // `any` type
+```
+Do not use `any` if you know what type to expect from a value. It is not a very helpful type and we can perform fewer type checks on it.
+
+One place we can use it is when we expect value whose type is known only at *runtime*. Ex: a data point from a server response. In such a case, you can combine `any` with a JS use guard clauses / `typeof` operator.
+
+**Note**: We can assign an `any` type value to other variables or params that require a specific type and we will NOT have errors as `any` is a flexible type. Think of it as being almost as good as turning off type checking.
+
+### Union types
+
+The union `|` operator allows us to combine types. It is a useful feature when you want to allow more than one core type.
+
+**Syntax**: `type1 | type2 | ... ;`
+
+```ts
+let x: number | string = 5; // allowed
+let y: number | string = 'Hola!'; // allowed
+let z: number | string = true; // ERROR!
+```
+
+Sometimes, TS cannot guarantee not running into errors when dealing with union types. In such a case, rely on runtime checks.
+Ex:
+```ts
+const add = (a: number | string, b: number | string) => {
+  return a + b; // TS ERROR!
+  // Cannot understand that we can concatenate number/string union type
+}
+
+// Solution: NO ERROR! (runtime checks)
+const add = (a: number | string, b: number | string) => {
+  if (typeof a === 'number' && typeof b === 'number') 
+    return a + b;
+  else if (typeof a === 'string' && typeof b === 'string') 
+    return a + b;
+}
+```
+
+### Literal types
+
+A literal type is ONE value instead of the whole set of values that form a type. 
+
+Ex: 
+```ts
+let x: 5 = 5; // The type is also 5 - Not a number
+x = 6; // ERROR!!
+```
+
+When are literal types useful? They are useful when you want to *set some identifiers*.
+```ts
+const add = (a: number, b: number, resultType: 'print' | 'return') => {
+  if (resultType === 'print') {
+    console.log(a + b);
+    return;
   }
+
+  return a + b;
 }
-// Type is inferred
 ```
+`resultType` has a union type of two literal types, `'print'` and `'return'`. An invocation such as `add(1, 2, 'blah')` will fail the type check.
 
-### Defining Arrays
+When you need more values for identifiers, it is better to go with an `enum`!
 
-Explicit types:
+Literal types can also be inferred by TS.
 
-```typescript
-const names: string[] = ['Ram', 'Laxman'] // TYPE: string[]
+### Unknown type
+
+Holds any value like `any` but is more restrictive. It is not used when you want flexibility like `any` i.e TS will throw errors during assignments to other variables and so on.
+
+Use it when you are unsure of what the value will be but if we can be certain of it *through type checking* then we can perform operations on it i.e type resolution has occurred. Cannot assign an `unknown` value to a known value (But, any is fine)
+
+Ex:
+```ts
+let foo; // any type
+let bar: string;
+
+foo = 5;
+bar = foo; // NO ERROR
+
+// -------
+
+let foo: unknown;
+let bar: string;
+
+foo = 5;
+bar = foo; // ERROR!!
+// Type 'unknown' is not assignable to type 'string'
 ```
+With type resolution:
+```ts
+let foo: unknown;
+let bar: string;
 
-TS can also infer the type:
-
-```typescript
-const people = ['Hello', 'bye', 1] // TYPE: (string | number)[]
-```
-
-### Using Tuples
-
-These are good for records since they are fixed length & fixed type arrays. Good for creating records of a specific structure. 
-
-*Syntax*: Use an array `[]` and inside it define the types of the elements at the respective positions. This is unlike an array where you define the type before the `[]`
-
-```typescript
-const record: [number, string, number] = [1, 'Pushkar', 27]
-// The length and individual element types of the 
-// tuple are preserved even if values are tried.
-```
-
-TS cannot really infer a tuple because it will infer an array:
-
-```typescript
-const record = [1, 'Pushkar', 27] // TYPE: (string | number)[]
-```
-
-### What are Enums?
-
-They are labels for values (Ex: Representing colors with labels of their names but with numeric values for each). It is useful for human readable labels for obscure values (Ex: Different user levels like admin, reader, editor but internally they are stored as numeric or string values but it's easier to use a label to fetch them)
-
-The numeric values start from **`0` by default** and increment by 1 but assigning them explicitly can change theirs and the subsequent enum values.
-
-Note that we can also assign strings or mix both strings and numbers
-
-Syntax: `enum <Name> { <Label1>, <Label2>, ... }`
-
-```typescript
-enum Role {
-  ADMIN,  // 0
-  MEMBER, // 1
-  EDITOR  // 2
-}
-
-// Usage example:
-const record = [Role.ADMIN, 'Pushkar', 27]
-```
-
-```typescript
-enum Role {
-  ADMIN = 100,  // 100
-  MEMBER, // 101
-  EDITOR = 500  // 500
+if (typeof foo === 'string') {
+  bar = foo; // NO ERROR post resolution
 }
 ```
 
-```typescript
-// Once you assign strings, the next value cannot be auto-incremented 
-// Hence, it must be assigned a value explicitly:
-enum Role {
-  ADMIN = 'ADMIN',  // ADMIN
-  MEMBER = 10, // 10
-  EDITOR  // 11
+Bottomline: `unknown` needs extra type checking before use.
+
+### Type aliases
+
+We can create type aliases in order to:
+* Have a centralized place to manage a particular type from
+* Avoid redundancy i.e You can use the alias name as a placeholder for the type it references (reusability)
+
+**Syntax:** Use the `type` keyword 
+```ts
+// convention: PascalCase
+type ResultType = 'print' | 'return';
+
+type Role = 'admin' | 'user';
+
+type User = {
+  name: string,
+  age: number,
+  role: Role
+}
+
+const printUserDetails = (user: User, resultType: ResultType) => {
+  /* ... */
+}
+
+const getUserRole = ({ role }: User) => { // Type aliases are reusable!
+  /* ... */
 }
 ```
 
-## Type inference
+## Functions
 
-Allow TS to infer type wherever possible. If it cannot, use explicit type assignments.
-
-```typescript
-// Don't do this:
-const a: number = 5 // It can be easily inferred to be a number
-
-// Do this:
-const a = 5
-
-// For function params, inference is not possible, so be explicit:
+Functions can be written like they are in JS i.e they are the same in TS but with type annotations:
+* Parameters can be given a type
+```ts
+function add(n1: number, n2: number) {
+  /* ... */
+}
+```
+* Return types can be inferred (Let TS do this; recommended)
+```ts
 function add(n1: number, n2: number) {
   return n1 + n2
 }
+// TYPE: function add(n1: number,  n2: number): number
 ```
-
-## Union of types
-
-When you want to accept two of more different types of values then a union type operator (`|`) can help us perform an **OR** operation on the data types assigned.
-
-```typescript
-// Example of union in function params:
-function combine(n1: number | string, n2: number | string) { /* ... */ }
-```
-
-```typescript
-const x: string | number = 5
-const y: (string | boolean)[] = ['Hi', true, false]
-```
-
-## Literal Types
-
-Instead of types which contain a range of values, literal types provide a specific value (similar to hardcoding or enforcing a specific value). This can sometimes give us more control on the type of value being passed
-
-Provide a value instead of a type in order to use a literal type:
-
-```typescript
-const x: 5 = 5
-const y: 10 | 'ten' = "ten"
-```
-
-```typescript
-function combine(n1: number | string, n2: number | string, as: 'as-text' | 'as-number') {
-  if (as === 'as-number') 
-    return (+n1) + (+n2)
-  else
-    return `${n1}${n2}`
-}
-
-console.log(combine(1, 2, 'as-number'));
-console.log(combine('He', 'llo', 'as-text'))
-```
-
-## Custom types (`type` aliases)
-
-When we want to reuse types everywhere, we can create an alias out of it and use the aliases' identifier across the app. For example, if we want an alphanumeric type, we can create one and use it across instead of re-typing the type structure everywhere and everytime.
-
-Convention for custom types: Use capitalised words *(Pascal case)*
-
-```typescript
-type NumOrString = number | string
-
-const password: NumOrString = 'jacknJy_SS'
-```
-
-```typescript
-type UserData = {
-  name: string,
-  id: number,
-  age: number
-}
-
-const pushkar: UserData = {
-  name: 'Pushkar',
-  id: 108,
-  age: 27
-}
-
-const saurabh: UserData = {
-  name: 'Saurabh',
-  id: 119,
-  age: 31
-}
-```
-
-Biggest benefits of custom types:
-
-1. Avoid unnecessary repetition
-2. Manage types centrally
-
-## Functions: parameter & return types
-
-1. We can assign types to function parameters:
-
-   ```typescript
-   function add(n1: number, n2: number) {
-     return n1 + n2
-   }
-   ```
-
-2. We can specify return types for more control (using `:` after arguments list). Typescript usually *infers* the return type though:
-
-   ```typescript
-   function add(n1: number, n2: number): number {
-     return n1 + n2
-   }
-   
-   // But, TS can also infer it (Don't be explicit unless you want more control)
-   ```
-
-3. The **`void`** return type is used for functions that do not return anything (Ex: Functions with only side effects such as printing to console)
-
-   ```typescript
-   function printResult(n: number) {
-     console.log('Result', n); 
-   }
-   // TS infers the return type to be "void" 
-   // i.e Function signature is "printResult(n: number): void"
-   
-   // But, we can also explicitly define it:
-   function printResult(n: number): void {
-     console.log('Result', n); 
-   }
-   ```
-
-4. `void` versus `undefined` return type: TS makes a distinction between undefined and void even though a function that does not return anything still implicitly returns undefined. According to TS, if the `return` keyword is missing, the return type is `void` and not `undefined`. However, if `return;` or `return undefined` are explicitly mention, the return type becomes `undefined`
-
-   ```typescript
-   function printResult(n: number) {
-     console.log('Result', n); 
-     return undefined;
-   } // return type: undefined
-   
-   function printResult(n: number) {
-     console.log('Result', n); 
-   } // return type: void
-   ```
-
-   It is better to stick to `void` when you don't want to return anything (or when what is returned does not matter)
-
-   **Note:** Both `void` and `undefined` return `undefined` in the compiled JavaScript
-
-## Function types
-
-We can assign functions to variables and invoke them. This is regular Javascript. The problem is that, we can re-assign those variables to either non-function types or to a different kind of function. This may not be desirable as it can give rise to runtime errors
-
-With TS, we can specify function types just as any other type. We can control the parameters, their types, and the return type. The advantage is that we can now guard against re-assignment to a non-function value or a function with an unwanted signature. This is generally good practice.
-
-Function types define the *parameters* and *return type* of a function
-
-Syntax for type (uses an arrow function): `(<param>: <type>, ...) => <return type>`
-
-```typescript
-function printResult(n: number) {
-  console.log('Result', n); 
-}
-
-let printer: (n: number) => void
-
-printer = printResult
-printer = 5 // ERROR!
-```
-
-We can also use it during a function expression initialisation instead of keeping the type inside the signature (An alternate syntax)
-
-```typescript
-const add: (n1: number, n2: number) => number = (n1, n2) => {
+* Return types can be set explicitly (use `:` after the arguments list)
+```ts
+function add(n1: number, n2: number): number {
   return n1 + n2
 }
 ```
 
-## Functions and callbacks
+### Void versus undefined return type
 
-We can define the function signature of callbacks in order to be more strict about the type of callbacks a function can accept:
+Functions in TS that do NOT return a value i.e implicit return have the `void` return type
+```ts
+function foo(n1: number, n2: number) {}
+// TYPE: function foo(n1: number, n2: number): void
+```
 
-```typescript
-function addAndProcess(n1: number, n2: number, cb: (n: number) => void) {
-  cb(n1 + n2)
+Functions in TS that return an empty value i.e explicit `return undefined;` have the `undefined` return type
+```ts
+function foo(n1: number, n2: number) {
+  return undefined;
+}
+// TYPE: function foo(n1: number, n2: number): undefined
+```
+
+### Functions as types
+
+Functions in JS are *first-class objects* i.e they can be passed around as arguments to other functions, assigned to variables, etc.
+
+* TS provides a `Function` type to describe them
+```ts
+function add(n1: number, n2: number) {
+  return n1 + n2;
 }
 
-addAndProcess(2, 3, n => {
-  console.log(n)
-})
+let newAdd: Function;
+
+newAdd = add;
+newAdd(1, 2); // 3 (AS EXPECTED)
+
+newAdd = () => {}; // Random function
+newAdd(5, 10); // No output (NOT EXPECTED!!)
+// Need a more specific type definition!
 ```
-
-If the return type of callback is `void` but we still return a value inside it, the code still works (No errors!). This is because it is only an indication that callback return value is never going to be used
-
-```typescript
-function addAndProcess(n1: number, n2: number, cb: (n: number) => void) {
-  cb(n1 + n2)
+* It is more useful to provide more specific function types!
+```ts
+function add(n1: number, n2: number) {
+  return n1 + n2;
 }
 
-addAndProcess(2, 3, n => {
-  console.log(n)
-  return 5 // No error!
-})
-```
+// More specific function type! 
+let newAdd: (a: number, b: number) => number;
 
-```typescript
-function addAndProcess(n1: number, n2: number, cb: (n: number) => string) {
-  cb(n1 + n2)
+newAdd = add;
+newAdd(1, 2); // 3 (AS EXPECTED)
+
+newAdd = () => {}; // ERROR! for function type mismatches!!
+```
+* Callbacks can also be given a function type but the return type is not really checked! *Ignored intentionally*
+```ts
+type Adder = (a: number, b: number) => void;
+
+function doSomething(x: number, cb: Adder) {
+  cb(x, 10);
 }
 
-addAndProcess(2, 3, n => {
-  console.log(n)
-  return 5 // ERROR! Expects string but returned number
-})
+doSomething(
+  5, 
+  (a, b) => {
+    return a + b; // Even though we return a vlaue, it is ignored by the invoking fn.
+    // Hence, passes check.
+    // But, params to the callback are strictly checked!!
+  }
+)
 ```
 
-## `unknown` type
+### Never type
 
-The `unknown` type is used when TS cannot infer the type. It is slightly better than `any` because it is a little less flexible
+`never` is a newer type: It is seen only as a function return type like `void`. It is also a rare occurrence.
 
-If you want to use it as any other type (a combined operation) then you first need to perform type checks unlike in any! This makes it better than any since you need to sure about how it is going to be used
+There are two cases in which the return type of a function can be `never`:
+1. When the function throws an error (& never returns)
+2. When the function never stops executing i.e infinite loop (& hence never returns)
+In both these cases, it is appropriate to assign a `never` return type to the function.
+**Note**: `never` was added later to TS as a type and TS does NOT infer the type i.e it defaults to `void` still. Explicitly define this return type.
+```ts
+function foo(msg: string): never {
+  throw new Error(msg);
+}
 
-```typescript
-let a: any
-let b: unknown
+// ---
 
-const num = 5
-a = 10
-b = 20
+function foo(msg: string) { // Inferred as `void`
+  throw new Error(msg);
+}
 
-a + num // No error (ANY + NUMBER is valid!)
-b + num // ERROR!! (UNKNOWN + NUMBER is NOT valid without confirmation of unknown's type)
-```
+// ---
 
-For `unknown` we need to confirm the type at runtime and then there are no errors!
-
-```typescript
-let b: unknown
-
-const num = 5
-b = 20
-
-if (typeof b === 'number') { // Confirmation of type needed!
-  b + num // No error :)
+function foo(msg: string): never {
+  while (true) {}
 }
 ```
 
-## `never` type
-
-When you have errors, the return type will be `never`. This is a special type that indicates that the app crashed and the function did not finish executing
-
-It is better than `void` because `void` does not indicate that an error occurred. With `never` you will ***not*** be able to see `undefined` as the return type
-
-```typescript
-let a: never;
-
-a = 5 // Error! Can never use a value for it
-```
-
-Due to legacy reasons, `never` is actually shown as `void`:
-
-```typescript
-function throwsAnError() {
- throw new Error('ERROR')
-} // This function 'never' returns a value (not even undefined)
-
-const result = throwsAnError() // TYPE: "result: void"
-```
-
-## TS compilation and config
-
-Install: **`npm i -g typescript`**
-
-Compile: **`tsc <filename>`** *(Ex: `tsc app.ts` generates a file called `app.js`)*
+## TypeScript configuration
 
 ### Watch mode
 
-Use **`tsc <filename> --watch`** or use the shorter `-w` flag
+Use the **`--watch`** mode (or simply `-w`) to watch for TS file changes and compile on save. This saves us some manual work.
 
-Ex: `tsc app.ts --watch`
+```
+$ tsc app.ts --watch
+```
 
-### Create a TS project with a config
+Any errors are immediately listed on file save.
 
-In the root of the project folder, run **`tsc --init`** which creates a `tsconfig.json` file. It contains some default config options
+### Creating a config file
 
-If we run `tsc` or `tsc -w` now, it will search for all `.ts` files in the project repo and compile them! We don't need to specify each individually
+* **`tsc init`** in the project root folder will create a `tsconfig.json` file
+* Now, we can run `tsc` or `tsc -w` without specifying the file names and TS will compile all the `.ts` files in the project
+* A config file is helpful when we want to manage more than just one `.ts` file i.e When we want to manage a whole TS project
+
+*Default config file*:
+```json
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Projects */
+    // "incremental": true,                              /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
+    // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    // "tsBuildInfoFile": "./.tsbuildinfo",              /* Specify the path to .tsbuildinfo incremental compilation file. */
+    // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects. */
+    // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */
+    // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
+
+    /* Language and Environment */
+    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    // "jsx": "preserve",                                /* Specify what JSX code is generated. */
+    // "experimentalDecorators": true,                   /* Enable experimental support for TC39 stage 2 draft decorators. */
+    // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
+    // "jsxFactory": "",                                 /* Specify the JSX factory function used when targeting React JSX emit, e.g. 'React.createElement' or 'h'. */
+    // "jsxFragmentFactory": "",                         /* Specify the JSX Fragment reference used for fragments when targeting React JSX emit e.g. 'React.Fragment' or 'Fragment'. */
+    // "jsxImportSource": "",                            /* Specify module specifier used to import the JSX factory functions when using 'jsx: react-jsx*'. */
+    // "reactNamespace": "",                             /* Specify the object invoked for 'createElement'. This only applies when targeting 'react' JSX emit. */
+    // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
+    // "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
+    // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    // "rootDir": "./",                                  /* Specify the root folder within your source files. */
+    // "moduleResolution": "node",                       /* Specify how TypeScript looks up a file from a given module specifier. */
+    // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
+    // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
+    // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
+    // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
+    // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
+    // "resolveJsonModule": true,                        /* Enable importing .json files. */
+    // "noResolve": true,                                /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */
+
+    /* JavaScript Support */
+    // "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
+    // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
+
+    /* Emit */
+    // "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    // "declarationMap": true,                           /* Create sourcemaps for d.ts files. */
+    // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
+    // "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
+    // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If 'declaration' is true, also designates a file that bundles all .d.ts output. */
+    // "outDir": "./",                                   /* Specify an output folder for all emitted files. */
+    // "removeComments": true,                           /* Disable emitting comments. */
+    // "noEmit": true,                                   /* Disable emitting files from a compilation. */
+    // "importHelpers": true,                            /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
+    // "importsNotUsedAsValues": "remove",               /* Specify emit/checking behavior for imports that are only used for types. */
+    // "downlevelIteration": true,                       /* Emit more compliant, but verbose and less performant JavaScript for iteration. */
+    // "sourceRoot": "",                                 /* Specify the root path for debuggers to find the reference source code. */
+    // "mapRoot": "",                                    /* Specify the location where debugger should locate map files instead of generated locations. */
+    // "inlineSourceMap": true,                          /* Include sourcemap files inside the emitted JavaScript. */
+    // "inlineSources": true,                            /* Include source code in the sourcemaps inside the emitted JavaScript. */
+    // "emitBOM": true,                                  /* Emit a UTF-8 Byte Order Mark (BOM) in the beginning of output files. */
+    // "newLine": "crlf",                                /* Set the newline character for emitting files. */
+    // "stripInternal": true,                            /* Disable emitting declarations that have '@internal' in their JSDoc comments. */
+    // "noEmitHelpers": true,                            /* Disable generating custom helper functions like '__extends' in compiled output. */
+    // "noEmitOnError": true,                            /* Disable emitting files if any type checking errors are reported. */
+    // "preserveConstEnums": true,                       /* Disable erasing 'const enum' declarations in generated code. */
+    // "declarationDir": "./",                           /* Specify the output directory for generated declaration files. */
+    // "preserveValueImports": true,                     /* Preserve unused imported values in the JavaScript output that would otherwise be removed. */
+
+    /* Interop Constraints */
+    // "isolatedModules": true,                          /* Ensure that each file can be safely transpiled without relying on other imports. */
+    // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+    // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
+    // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
+    // "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
+    // "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
+    // "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
+    // "useUnknownInCatchVariables": true,               /* Default catch clause variables as 'unknown' instead of 'any'. */
+    // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
+    // "noUnusedLocals": true,                           /* Enable error reporting when local variables aren't read. */
+    // "noUnusedParameters": true,                       /* Raise an error when a function parameter isn't read. */
+    // "exactOptionalPropertyTypes": true,               /* Interpret optional property types as written, rather than adding 'undefined'. */
+    // "noImplicitReturns": true,                        /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    // "noFallthroughCasesInSwitch": true,               /* Enable error reporting for fallthrough cases in switch statements. */
+    // "noUncheckedIndexedAccess": true,                 /* Add 'undefined' to a type when accessed using an index. */
+    // "noImplicitOverride": true,                       /* Ensure overriding members in derived classes are marked with an override modifier. */
+    // "noPropertyAccessFromIndexSignature": true,       /* Enforces using indexed accessors for keys declared using an indexed type. */
+    // "allowUnusedLabels": true,                        /* Disable error reporting for unused labels. */
+    // "allowUnreachableCode": true,                     /* Disable error reporting for unreachable code. */
+
+    /* Completeness */
+    // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  }
+}
+```
+
+### Specifying files
+
+We can define which files to include or exclude inside the `tsconfig.json`.
 
 #### Excluding files
 
-We can exclude files with the **`exclude`** option. By default, `node_modules` is excluded but we can specify an array of other files too. 
+We can exclude files with the  **`exclude`**  option. By default,  `node_modules`  is excluded but we can specify an array of other files too.
 
-We can even use wildcards (like `*` & `**` to match any file and recursive search folders)
+We can even use wildcards (like  `*`  &  `**`  to match any file and recursive search folders)
 
 ```json
 {  "exclude": [
@@ -521,9 +877,9 @@ We can even use wildcards (like `*` & `**` to match any file and recursive searc
 
 #### Including files
 
-`include` does the opposite of `exclude`. If we do add it, we must specify everything we wanted inside it else it will not compile (even if those files are not present in an `exclude` option). So, it has a higher priority than exclude
+`include`  does the opposite of  `exclude`. If we do add it, we must specify everything we wanted inside it else it will not compile (even if those files are not present in an  `exclude`  option). So, it has a higher priority than exclude
 
-Here too, we can use wildcards (Ex: `*` & `**`) to match many files and folders
+Here too, we can use wildcards (Ex:  `*`  &  `**`) to match many files and folders:
 
 ```json
 {
@@ -533,79 +889,84 @@ Here too, we can use wildcards (Ex: `*` & `**`) to match many files and folders
 }
 ```
 
-**Note:** If we exclude a sub-folder or a folder that is included then that sub-folder is actually *excluded*!
+**Note:**  If we exclude a sub-folder or a folder that is included then that sub-folder is actually  _excluded_!
 
-**Note:** We can also use **`files`** instead of `include` but the difference is that we cannot match folders in this but we have to list all the files *individually*!
+**Note:**  We can also use  **`files`**  instead of  `include`  but the difference is that we cannot match folders in this but we have to list all the files  _individually_ (not very helpful)!
 
-#### Compilation target
+### More compiler options
 
-There are many compiler options (i.e **`compilerOptions`**) we can set in the config. One of them is **`target`**. When we use this, we define the Javascript standard to which we want to compile down to: `es5`, `es6`, etc.
+1.  `allowJs`: Compiles javaScript files also (if `true`). Not needed unless you want to compile over old js files
+    
+2.  `checkJs`: Reports errors in javascript files (if `true`) but does not compile it (only checks)
+    
+3.  `declaration`: It will generate a  `.d.ts`  file with function signatures. Useful while creating libraries that will be used by others (will provide autocomplete and typechecks)
+    
+4.  `sourceMap`: If `true`, will enable source mapping directly to the source  `.ts`  files in the browser. It also needs to be true while debugging in VSCode
+    
+5.  `outDir`: Specifies the output directory (By default, it is the project root). Perhaps, create a `dist` folder for this purpose.
+    
+6.  `rootDir`: Specifies the directory from which to compile all  `.ts`  files. By default, it is the project root. Maybe create a `src` directory for this purpose.
+    
+7.  `removeComments`: Removes comments from output files (if true). Good optimization / minimization strategy
+    
+8.  `strict`: Keeps all the strict checks in place (enabled by default). It is a combo of many other checks:
+    
+    1.  `noImplicitAny`: Cannot have  `any`  type. Must be resolved. Will throw an error (if true)
+    2.  `strictNullChecks`: Cannot have values that might possibly be  `null`  3.  `strictBindCallApply`: The bind  `this`  and arguments list must match exactly
+    3. `noImpliedThis`: Raise error on 'this' expressions with an implied 'any' type (if true) 5.  `alwaysStrict`: Parse in strict mode and emit "use strict" for each source file (if true)
+    4. `"strictBindCallApply"`
+    5. `"strictPropertyInitialization"`
+    6. `"alwaysStrict"`
+    7. `"noImplicitReturns"`: A function must always have a return value. There cannot be conditions inside the function that return a value but the same does not happen in the else case.
+    
+9.  `noEmitOnError`: If there is any error in any of the processed files, no output is generated (not even those files which don't have errors)
+10.  `noUnusedLocals`: Cannot have local variables that do not get used
+11.  `noUnusedParameters`: Do not leave parameters unused
+    
 
-```json
-{
-  "compilerOptions": {
-    "target": "es5" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */
-  }
-}
-```
+**`strictNullChecks`**
 
-#### Core libraries
+This rule is useful when you have cases where a particular value could be `null` but it is used assuming that the value exists!
 
-The **`lib`** compiler option sets the core libraries that TS needs. For example, **`dom`** is a part of the core libraries by default. That is why TS does not complain about DOM instances such as `document` 
-
-```json
-{
-  "compilerOptions": {
-    "lib": ["dom", "es6", "dom.iterable", "scripthost"] // These are available by default (i.e When lib option is not specified)
-  }
-}
-```
-
-#### More compiler options
-
-1. `allowJs`: Compiles javasript files also (if true). Not needed unless you want to compile over old js files
-2. `checkJs`: Reports errors in javascript files (if true) but does not compile it (only checking)
-3. `declaration`: It will generate a `.d.ts` file with function signatures. Useful while creating libraries that will be used by others (will provide autocomplete and typechecks)
-4. `sourceMap`: If true, will enable source mapping directly to the source `.ts` files in the browser. It also needs to be true while debugging in VSCode
-5. `outDir`: Specifies the output directory (By default, it is the project root)
-6. `rootDir`: Specifies the directory from which to compile all `.ts` files. By default, it is the project root
-7. `removeComments`: Removes comments from output files (if true)
-8. `strict`: Keeps all the strict checks in place (enabled by default). It is a combo of many other checks:
-
-   1. `noImplicitAny`: Cannot have `any` type. Must be resolved. Will throw an error (if true)
-2. `strictNullChecks`: Cannot have values that might possibly be `null`
-   3. `strictBindCallApply`: The bind `this` and arguments list must match exactly
-4. `noImpliedThis`: Raise error on 'this' expressions with an implied 'any' type (if true)
-   5. `alwaysStrict`: Parse in strict mode and emit "use strict" for each source file (if true)
-6. There are even more rules that make up `strict`
-9. `noEmitOnError`: If there is any error in any of the processed files, no output is generated (not even those files which don't have errors)
-10. `noUnusedLocals`: Cannot have local variables that do not get used
-11. `noUnusedParameters`: Do not leave parameters unused
-
-##### `strictNullChecks`
-
-This rule is useful when you have cases where a particular value could be null but it is used assuming that the value exists
-
-```typescript
+```ts
 const button = document.getElementById('button')
 button.addEventListener('click', () => {}) // ERROR! button can be null if element wasn't found
 ```
 
-To override the rule, we can *append `!`* at the end of lines of violation:
-
-```typescript
+To override the rule, we can  _append  `!`_  at the end of lines of violation:
+```ts
 const button = document.getElementById('button')!
 button.addEventListener('click', () => {}) // No Error because of !
 ```
 
-Alternate fix (ESNext):
-
-```typescript
+*Alternate fix 1 (ESNext)*:
+```ts
 const button = document.getElementById('button')
 button?.addEventListener('click', () => {})
 ```
 
-Lastly, you can also explcitly check for null case before using props on a DOM element
+*Alternative fix 2 (Recommended)*: You can also explicitly check for `null` case before using props on a DOM element
+
+```ts
+const button = document.getElementById('button')
+
+if (button) {
+    button.addEventListener('click', () => {})
+}
+```
+
+**Fine grained source map control options**:
+Additional options include:
+* `"sourceRoot"`
+* `"mapRoot"`
+* `"inlineSourceMap"`
+* `"inlineSources"`
+
+**VSCode plugin for TS**
+
+* ESLint (needs configuration)
+* Prettier (for formatting)
+* Debugger for chrome in VSCode (Enable `sourceMaps` & choose run > start debugging)
 
 ## Classes & interfaces
 
@@ -2427,5 +2788,3 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
   next()
 })
 ```
-
----
