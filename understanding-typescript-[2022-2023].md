@@ -2405,7 +2405,7 @@ $button.addEventListener('click', pushkar.printName)
 
 This approach might be better than writing your own validator decorators for **production code**
 
-##Namespaces
+## Namespaces
 
 Using namespaces code syntax, we can "group code".
 
