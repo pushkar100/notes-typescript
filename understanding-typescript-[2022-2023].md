@@ -2141,8 +2141,8 @@ const pushkar = new Person('Pushkar')
 pushkar.speak()
 
 /* Output:
-Logging...
 Sending analytics...
+Logging...
 Pushkar speaking
 */
 ```
