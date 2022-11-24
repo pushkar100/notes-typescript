@@ -3,6 +3,7 @@
 Courses:
 * [Udemy](https://www.udemy.com/course/understanding-typescript)
 
+**Table of Contents**
 - [TypeScript](#typescript)
   * [Introduction](#introduction)
     + [Advantages of using TypeScript](#advantages-of-using-typescript)
@@ -81,6 +82,7 @@ Courses:
       - [Enhancing class constructors using decorators](#enhancing-class-constructors-using-decorators)
       - [Enhancing methods & accessors using decorators](#enhancing-methods---accessors-using-decorators)
       - [Validating data using decorators](#validating-data-using-decorators)
+  * [Namespaces](#namespaces)
     + [Requiring a namespace](#requiring-a-namespace)
   * [Modules](#modules)
   * [Webpack with Typescript](#webpack-with-typescript)
